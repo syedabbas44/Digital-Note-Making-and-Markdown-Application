@@ -1,0 +1,18 @@
+Run the Project
+            Terminal 1 – Start Backend
+
+cd digital-notes/backend
+npx nodemon server.js
+
+Backend running
+http://localhost:5000
+
+            Terminal 2 – Start Frontend
+cd digital-notes/frontend
+npm run dev
+
+
+Open the Vite URL shown in the terminal, usually:
+http://localhost:5173
+
+Make sure MongoDB is running before starting the backend.
