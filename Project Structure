@@ -1,0 +1,16 @@
+digital-notes/
+│
+├── backend/
+│   ├── models/
+│   │   └── Note.js
+│   ├── routes/
+│   │   └── noteRoutes.js
+│   ├── server.js
+│   └── .env
+│
+└── frontend/
+    ├── src/
+    │   ├── App.jsx
+    │   ├── App.css
+    │   └── main.jsx
+    └── package.json
