@@ -1,0 +1,299 @@
+Frontend Development (React.js)
+                             Step 1: Create React application
+               Open a new terminal in the digital-notes folder:
+npm create vite@latest frontend -- --template react
+cd frontend
+npm install
+npm install axios react-markdown remark-gfm
+
+
+
+
+                             Step 2: Create src/App.jsx
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import "./App.css";
+
+const API = "http://localhost:5000/api/notes";
+
+function App() {
+    const [notes, setNotes] = useState([]);
+    const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
+    const [selectedId, setSelectedId] = useState(null);
+    const [preview, setPreview] = useState(false);
+
+    // Fetch notes
+    const fetchNotes = async () => {
+        try {
+            const res = await axios.get(API);
+            setNotes(res.data);
+        } catch (error) {
+            alert("Unable to load notes");
+        }
+    };
+
+    useEffect(() => {
+        fetchNotes();
+    }, []);
+
+    // Create or update note
+    const saveNote = async () => {
+        if (!title.trim()) {
+            alert("Please enter a note title");
+            return;
+        }
+
+        try {
+            const noteData = { title, content };
+
+            if (selectedId) {
+                await axios.put(`${API}/${selectedId}`, noteData);
+            } else {
+                await axios.post(API, noteData);
+            }
+
+            alert("Note saved successfully!");
+            clearEditor();
+            fetchNotes();
+        } catch (error) {
+            alert("Error saving note");
+        }
+    };
+
+    // Edit note
+    const editNote = (note) => {
+        setSelectedId(note._id);
+        setTitle(note.title);
+        setContent(note.content);
+        setPreview(false);
+    };
+
+    // Delete note
+    const deleteNote = async (id) => {
+        if (window.confirm("Delete this note?")) {
+            try {
+                await axios.delete(`${API}/${id}`);
+                fetchNotes();
+
+                if (selectedId === id) {
+                    clearEditor();
+                }
+            } catch (error) {
+                alert("Error deleting note");
+            }
+        }
+    };
+
+    // Clear editor
+    const clearEditor = () => {
+        setTitle("");
+        setContent("");
+        setSelectedId(null);
+        setPreview(false);
+    };
+
+    return (
+        <div className="app">
+            <header>
+                <h1>Digital Notes & Markdown</h1>
+                <p>Create, edit and manage your notes</p>
+            </header>
+
+            <div className="container">
+                <aside>
+                    <button onClick={clearEditor}>
+                        + New Note
+                    </button>
+
+                    <h2>My Notes</h2>
+
+                    {notes.map(note => (
+                        <div className="note-item" key={note._id}>
+                            <span onClick={() => editNote(note)}>
+                                {note.title}
+                            </span>
+
+                            <button
+                                className="delete"
+                                onClick={() => deleteNote(note._id)}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    ))}
+                </aside>
+
+                <main>
+                    <input
+                        type="text"
+                        placeholder="Enter note title"
+                        value={title}
+                        onChange={e => setTitle(e.target.value)}
+                    />
+
+                    <div className="toolbar">
+                        <button onClick={() => setPreview(false)}>
+                            Edit
+                        </button>
+
+                        <button onClick={() => setPreview(true)}>
+                            Preview
+                        </button>
+
+                        <button onClick={saveNote}>
+                            Save Note
+                        </button>
+                    </div>
+
+                    {preview ? (
+                        <div className="preview">
+                            <h2>{title || "Untitled Note"}</h2>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {content}
+                            </ReactMarkdown>
+                        </div>
+                    ) : (
+                        <textarea
+                            placeholder="Write your Markdown notes here..."
+                            value={content}
+                            onChange={e => setContent(e.target.value)}
+                        />
+                    )}
+                </main>
+            </div>
+        </div>
+    );
+}
+
+export default App;
+
+
+
+                             Step 3: Create src/App.css
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f1f3f6;
+}
+
+header {
+    background: #263b5e;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+header h1 {
+    margin: 0;
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    min-height: 80vh;
+}
+
+aside {
+    width: 260px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+main {
+    flex: 1;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+textarea {
+    width: 100%;
+    height: 400px;
+    padding: 15px;
+    font-size: 16px;
+    resize: vertical;
+}
+
+button {
+    padding: 10px 15px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    background: #2878d0;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #185da8;
+}
+
+.toolbar {
+    margin-bottom: 15px;
+}
+
+.note-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+    gap: 5px;
+}
+
+.note-item span {
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+
+.delete {
+    background: #dc3545;
+}
+
+.preview {
+    min-height: 400px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 650px) {
+    .container {
+        flex-direction: column;
+    }
+
+    aside {
+        width: 100%;
+    }
+}
+
+
+
+                             Step 4: src/main.jsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
+        <App />
+    </React.StrictMode>
+);
+
